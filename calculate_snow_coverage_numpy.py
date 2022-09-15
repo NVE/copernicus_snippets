@@ -350,7 +350,7 @@ DATA_TYPES = {
 def main():
     """Do the main work"""
     # User defined variables
-    aoi = "C:/data/aoi.geojson"  # Path to GeoJSON with AOI could also be a WKT Polygon or shape file....
+    aoi = "./data/aoi.geojson"  # Path to GeoJSON with AOI could also be a WKT Polygon or shape file....
     server = (
         "http://gis3.nve.no/image/rest/services/ImageService/"  # defaults to is3.nve.no
     )
@@ -590,7 +590,6 @@ def main():
         except Exception as err:
             logger.error("Feilet ved DTM-analyse: {}".format(err))
 
-        print(res_dict)
         print(json.dumps(res_dict))
         return json.dumps(res_dict)
 
