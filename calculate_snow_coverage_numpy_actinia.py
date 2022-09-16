@@ -7,7 +7,7 @@ AUTHOR(S): Stefan Blumentrath <stbl AT nve.no>
 
 PURPOSE:   Compute maximum, mean and minimum snow cover from data provided by an ImageServer
 
-COPYRIGHT: (C) 2022 NVE, Stefan Blumentrath, and by the GRASS Development Team
+COPYRIGHT: (C) 2022 NVE, Stefan Blumentrath
 
 This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
