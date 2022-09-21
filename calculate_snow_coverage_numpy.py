@@ -23,10 +23,14 @@ from warnings import warn
 if "GDAL_DATA" not in os.environ or "PROJ_LIB" not in os.environ:
     if "CONDA_PREFIX" in os.environ:
         if not Path(os.environ["CONDA_PREFIX"] + r"\Library\share\gdal").exists():
-            raise Exception(f"Mappe med GDAL: {os.environ['CONDA_PREFIX']}/Library/share/gdal finnes ikke.")
+            raise Exception(
+                f"Mappe med GDAL: {os.environ['CONDA_PREFIX']}/Library/share/gdal finnes ikke."
+            )
         os.environ["GDAL_DATA"] = os.environ["CONDA_PREFIX"] + r"\Library\share\gdal"
         if not Path(os.environ["CONDA_PREFIX"] + r"\Library\share\proj").exists():
-            raise Exception(f"Mappe med PROJ: {os.environ['CONDA_PREFIX']}/Library/share/proj finnes ikke.")
+            raise Exception(
+                f"Mappe med PROJ: {os.environ['CONDA_PREFIX']}/Library/share/proj finnes ikke."
+            )
         os.environ["PROJ_LIB"] = os.environ["CONDA_PREFIX"] + r"\Library\share\proj"
 
 
@@ -170,7 +174,7 @@ def aggregate_raster(
     gdal.Warp(
         target_ds,
         in_ds,
-        #format=gdal_format,
+        # format=gdal_format,
         # width=ref_grid['width'],
         # height=ref_grid['height'],
         resampleAlg=agg_alg,
@@ -205,7 +209,11 @@ def rasterize_aoi(reference_grid, aoi, spatial_ref):
 
     # Create target raster map from reference grid
     target_ds = create_gdal_raster(
-        reference_grid, spatial_ref, gdal.GDT_Byte, ds_name="mask_raster", driver_name="MEM"
+        reference_grid,
+        spatial_ref,
+        gdal.GDT_Byte,
+        ds_name="mask_raster",
+        driver_name="MEM",
     )
 
     # Rasterize AOI on target raster map
@@ -378,7 +386,9 @@ def main():
         try:
             datetime.fromisoformat(date_start)
         except Exception:
-            raise Exception("Parameter 'start dato' er ikke et ISO-formatert dato (YYYY-MM-DD).")
+            raise Exception(
+                "Parameter 'start dato' er ikke et ISO-formatert dato (YYYY-MM-DD)."
+            )
 
     if not date_end:
         date_end = date_start
@@ -386,7 +396,9 @@ def main():
         try:
             datetime.fromisoformat(date_end)
         except Exception:
-            raise Exception("Parameter 'end dato' er ikke et ISO-formatert dato (YYYY-MM-DD).")
+            raise Exception(
+                "Parameter 'end dato' er ikke et ISO-formatert dato (YYYY-MM-DD)."
+            )
 
     # Compile URL and query paramters for snow image server
     query = {
@@ -440,13 +452,18 @@ def main():
 
     # Create an empty numpy array
     np_snow = np.zeros(raster_mask.shape)
+    np_snow_valid_count = np.zeros(raster_mask.shape, dtype=np.byte)
 
     # Read images to array and compute average value over available images
     for i in images.values():
-        ds = gdal.Open(f"/vsicurl/{i}")
-        ds = np.array(ds.ReadAsArray())
-        np_snow += np.where((ds > 100) & (ds <= 200), ds - 100, 0)
-    np_snow = np_snow / len(images)
+        img_ds = gdal.Open(f"/vsicurl/{i}")
+        img_ds = np.array(img_ds.ReadAsArray())
+        np_snow += np.where((img_ds > 100) & (img_ds <= 200), img_ds - 100, 0)
+        np_snow_valid_count += np.where((img_ds > 100) & (img_ds <= 200), 1, 0).astype(
+            np.bool_
+        )
+        img_ds = None
+    np_snow = np.divide(np_snow, np_snow_valid_count, where=np_snow_valid_count != 0)
 
     try:
         # Ekstra test siden extract by mask ikke feiler i Desktop
@@ -459,10 +476,12 @@ def main():
 
         px_area = raster_aoi["pixelSizeX"] * raster_aoi["pixelSizeY"]
 
-        res_dict = {"snow_area": float(np_snow_ma.count() * px_area / 1000000),
-                    "snow_mean_percentage": float(round(np_snow_ma.mean(), 2)),
-                    "snow_min_percentage": float(round(np_snow_ma.min(), 2)),
-                    "snow_max_percentage": float(round(np_snow_ma.max(), 2))}
+        res_dict = {
+            "snow_area": float(np_snow_ma.count() * px_area / 1000000),
+            "snow_mean_percentage": float(round(np_snow_ma.mean(), 2)),
+            "snow_min_percentage": float(round(np_snow_ma.min(), 2)),
+            "snow_max_percentage": float(round(np_snow_ma.max(), 2)),
+        }
 
         logger.info(
             "Gjennomsnittlig snøprosent er {}%".format(res_dict["snow_mean_percentage"])
@@ -474,12 +493,14 @@ def main():
         res_dict["area_complete"] = float(np_snow_ma.count() * px_area / 1000000)
 
         logger.info(
-            "Areal for piklser med minst {min_snow}% snø er {areal}km2".format(min_snow=min_snow_percent, areal=res_dict["snow_area"])
+            "Areal for piklser med minst {min_snow}% snø er {areal}km2".format(
+                min_snow=min_snow_percent, areal=res_dict["snow_area"]
+            )
         )
         logger.info("Analyseareal er {}km2".format(res_dict["area_complete"]))
 
-        res_dict["area_with_snow"] = float(round(
-            res_dict["snow_area"] / res_dict["area_complete"] * 100, 2)
+        res_dict["area_with_snow"] = float(
+            round(res_dict["snow_area"] / res_dict["area_complete"] * 100, 2)
         )
 
         # Find elevation for pixels with snow
@@ -539,7 +560,13 @@ def main():
                     )
                 )
 
-                snow_classes = [snow_class for snow_class in np.unique(np.floor(np_dtm_ma / snow_bands).astype(np.int8)) if snow_class]
+                snow_classes = [
+                    snow_class
+                    for snow_class in np.unique(
+                        np.floor(np_dtm_ma / snow_bands).astype(np.int8)
+                    )
+                    if snow_class
+                ]
 
                 snow_diff_elevation = (
                     res_dict["snow_max_elevation"] - res_dict["snow_min_elevation"]
@@ -566,21 +593,27 @@ def main():
                             f"snow_{snow_class_min}m_to_{snow_class_max}m_mean_percentage"
                         ] = float(snow_class_mean_percentage)
                     except Exception:
-                        res_dict[f"snow_{snow_class_min}m_to_{snow_class_max}m_mean_percentage"] = -9999
+                        res_dict[
+                            f"snow_{snow_class_min}m_to_{snow_class_max}m_mean_percentage"
+                        ] = -9999
 
                     try:
                         res_dict[
                             f"snow_{snow_class_min}m_to_{snow_class_max}m_min_percentage"
                         ] = float(snow_class_min_percentage)
                     except Exception:
-                        res_dict[f"snow_{snow_class_min}m_to_{snow_class_max}m_min_percentage"] = -9999
+                        res_dict[
+                            f"snow_{snow_class_min}m_to_{snow_class_max}m_min_percentage"
+                        ] = -9999
 
                     try:
                         res_dict[
                             f"snow_{snow_class_min}m_to_{snow_class_max}m_max_percentage"
                         ] = float(snow_class_max_percentage)
                     except Exception:
-                        res_dict[f"snow_{snow_class_min}m_to_{snow_class_max}m_max_percentage"] = -9999
+                        res_dict[
+                            f"snow_{snow_class_min}m_to_{snow_class_max}m_max_percentage"
+                        ] = -9999
             else:
                 logger.warning(
                     "Minimum snøprosent er {}. Beregner derfor ikke høyde".format(
