@@ -136,30 +136,70 @@ semantic_labels="/hdata/fjernanalyse3/CopernicusUtviklingOgTest/data_import/sema
 long_name="Difference between Sentinel-2 and Sentinel-3 snow coverage" nprocs=5 nodata=255 time_format="%Y%m%d"
 
 # Create mapset if it does not exist
-rm -rf /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_fractional_snow_cover_sca
-/localhome/actiniad/.local/bin/grass -c -e /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_fractional_snow_cover_sca
+rm -rf /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_SLSTR_fractional_snow_cover_sca
+/localhome/actiniad/.local/bin/grass -c -e /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_SLSTR_fractional_snow_cover_sca
 
 # Run import / registration of all data
-/localhome/actiniad/.local/bin/grass /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_fractional_snow_cover_sca \
---exec /hdata/fjernanalyse3/CopernicusUtviklingOgTest/t.register.local --overwrite -o \
+/localhome/actiniad/.local/bin/grass /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_SLSTR_fractional_snow_cover_sca \
+--exec t.register.local --overwrite -o \
 input="/hdata/gis-srv15/ImageServer/Data/s3/SLSTR_sca" \
-suffix="tif" units="classification" output="Sentinel_3_fractional_snow_cover_sca" \
+suffix="tif" units="classification" output="Sentinel_3_SLSTR_fractional_snow_cover_sca" \
 semantic_labels="/hdata/fjernanalyse3/CopernicusUtviklingOgTest/data_import/semantic_labels_S3_fsc.txt" \
-file_pattern="*sca-snomap-color*" \
-long_name="Fractional snow cover from Sentinel-3" nprocs=5 nodata=255 time_format="%Y%m%d"
+file_pattern="*s3*slstr*sca-snomap-color*_500*" \
+long_name="Fractional snow cover from SLSTR instrument on Sentinel-3" nprocs=5 nodata=255 time_format="%Y%m%d_%H%M%S"
+
+python3 -c 'import grass.script as gs
+reclass_rules = "\n".join([f"{i + 100} = {i}" for i in range(0, 101)])
+reclass_rules = f"0 thru 99 = NULL\n{reclass_rules}\n* = NULL\n"
+
+reclass_file_path = gs.tempfile(create=False)
+with open(reclass_file_path, "w") as register_file:
+    register_file.write(reclass_rules)
+
+gs.run_command("t.rast.reclass",
+               input="Sentinel_3_SLSTR_fractional_snow_cover_sca@Sentinel_3_SLSTR_fractional_snow_cover_sca",
+               semantic_label="percent",
+               nprocs=25,
+               output="Sentinel_3_SLSTR_fractional_snow_cover_sca_perc",
+               rules=reclass_file_path,
+               title="Sentinel-3 fractional snow cover",
+               description="Sentinel-3 fractional snow cover",
+               overwrite=True,
+               verbose=True,
+               )
 
 # Create mapset if it does not exist
-rm -rf /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_fractional_snow_cover_sca_klein
-/localhome/actiniad/.local/bin/grass -c -e /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_fractional_snow_cover_sca_klein
+rm -rf /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_SLSTR_fractional_snow_cover_sca_klein
+/localhome/actiniad/.local/bin/grass -c -e /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_SLSTR_fractional_snow_cover_sca_klein
 
 # Run import / registration of all data
-/localhome/actiniad/.local/bin/grass /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_fractional_snow_cover_sca_klein \
+/localhome/actiniad/.local/bin/grass /localhome/actiniad/actinia/userdata/user/ETRS_33N/Sentinel_3_SLSTR_fractional_snow_cover_sca_klein \
 --exec /hdata/fjernanalyse3/CopernicusUtviklingOgTest/t.register.local --overwrite -o \
 input="/hdata/gis-srv15/ImageServer/Data/s3/SLSTR_sca" \
-suffix="tif" units="classification" output="Sentinel_3_fractional_snow_cover_sca_klein" \
+suffix="tif" units="classification" output="Sentinel_3_SLSTR_fractional_snow_cover_sca_klein" \
 semantic_labels="/hdata/fjernanalyse3/CopernicusUtviklingOgTest/data_import/semantic_labels_S3_fsc.txt" \
 file_pattern="*sca-snomap-klein-color*" \
-long_name="Fractional snow cover from Sentinel-3 (Klein algorithm)" nprocs=5 nodata=255 time_format="%Y%m%d"
+long_name="Fractional snow cover from SLSTR instrument on Sentinel-3 (Klein algorithm)" nprocs=25 nodata=255 time_format="%Y%m%d_%H%M%S"
+
+python3 -c 'import grass.script as gs
+reclass_rules = "\n".join([f"{i + 100} = {i}" for i in range(0, 101)])
+reclass_rules = f"0 thru 99 = NULL\n{reclass_rules}\n* = NULL\n"
+
+reclass_file_path = gs.tempfile(create=False)
+with open(reclass_file_path, "w") as register_file:
+    register_file.write(reclass_rules)
+
+gs.run_command("t.rast.reclass",
+               input="Sentinel_3_SLSTR_fractional_snow_cover_sca_klein@Sentinel_3_SLSTR_fractional_snow_cover_sca_klein",
+               semantic_label="percent",
+               nprocs=25,
+               output="Sentinel_3_SLSTR_fractional_snow_cover_sca_klein_perc",
+               rules=reclass_file_path,
+               title="Sentinel-3 fractional snow cover (Klein algorithm)",
+               description="Sentinel-3 fractional snow cover (Klein algorithm)",
+               overwrite=True,
+               verbose=True,
+               )
 
 
 
