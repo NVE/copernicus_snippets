@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "aoi",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 2, "name": "lavangsdalen", "width": 11056.783901000001, "height": 17919.615287000001, "area": 198133313.81251499, "perimeter": 57952.798376 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 19.071932751709578, 69.37733450107774 ], [ 19.352416173291374, 69.370518332985682 ], [ 19.385043971489853, 69.530750457549317 ], [ 19.102472749202228, 69.537624717341998 ], [ 19.071932751709578, 69.37733450107774 ] ] ] } }
+]
+}
