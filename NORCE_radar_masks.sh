@@ -48,3 +48,4 @@ do
     done
   done < <(printf "$mosaics")
 done
+r.external.out -r
