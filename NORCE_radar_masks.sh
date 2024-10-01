@@ -3,6 +3,9 @@
 source_dir=/hdata/fjernanalyse3/CopernicusUtviklingOgTest/Vaatsnoe_NORCE
 cd $source_dir
 
+r.external.out directory=/hdata/fjernanalyse3/Sentinel1/NORCE_masks format=GTiff options="COMPRESS=LZW" extension=tif
+r.external.out -p
+
 tracks=$(find $source_dir -name "*Mask*.tif" -exec basename {} \; | cut -f2 -d"_" | cut -f1 -d"." | sort | uniq)
 
 mosaics="Mean|bilinear|Average backscatter intensity
