@@ -50,7 +50,7 @@ do
       #r.patch --o --v input="$emaps" output="$raster_map" nprocs=1
       # r.out.gdal --o --v input="$raster_map" output="/hdata/fjernanalyse3/Sentinel1/NORCE_masks_wetsnow/${raster_map}" format=COG createopt="BIGTIFF=YES,PREDICTOR=2,COMPRESS=ZSTD,LEVEL=9,OVERVIEW_COUNT=8,OVERVIEW_RESAMPLING=NEAREST,STATISTICS=YES"
       gdalbuildvrt -r "$resample" -tap -tr "$ewres" "$nsres" -input_file_list "vrt_input_${m_id}_${t}.txt" "/tmp/${raster_map}.vrt"
-      gdal_translate -of COG "/tmp/${raster_map}.vrt" "/tmp/${raster_map}.tif"
+      gdal_translate -of COG -co "BIGTIFF=YES" -co "PREDICTOR=2" -co "COMPRESS=ZSTD" -co "LEVEL=9" -co "OVERVIEW_COUNT=8" -co "OVERVIEW_RESAMPLING=NEAREST" -co "STATISTICS=YES" "/tmp/${raster_map}.vrt" "/tmp/${raster_map}.tif"
       r.in.gdal -o --o --v input="/tmp/${raster_map}.tif" output="$raster_map" title="$title" memory=2048
       r.support map="$raster_map" semantic_label="$semantic_label"
       mv "/tmp/${raster_map}.tif" /hdata/fjernanalyse3/Sentinel1/NORCE_masks/

@@ -267,10 +267,9 @@ def mask_landcover(
     env = env or os.environ.copy()
     tools = Tools(env=env)
     tools.g_region(raster=landcover_map, align=landcover_map)
-    mask_expression = f"landcover_mask=if(isnull({landcover_map})"
-    for v in invalid_lc_codes:
-        mask_expression += f" || {landcover_map} == {v}"
-    mask_expression += ", 0, 1)"
+    mask_expression = f"landcover_mask=if(("
+    mask_expression += " || ".join(f"{landcover_map} == {v}" for v in invalid_lc_codes)
+    mask_expression += "), null(), 1)"
     tools.r_mapcalc(
         expression=mask_expression,
         overwrite=overwrite,
@@ -335,7 +334,7 @@ def prepare_reference_data_track(
         mask_highres = f"{basename}_{track}_mask_{int(high_res_reg['nsres'])}m"
         with gs.MaskManager(mask_name="landcover_mask", env=env):
             tools.r_mapcalc(
-                expression=f"{mask_highres}=if(isnull({raster_maps['mask']}) ||| ({raster_maps['mask']} <= 100 && {raster_maps['mask']} != 32), 1, 0)",
+                expression=f"{mask_highres}=if(({raster_maps['mask']} <= 100 && {raster_maps['mask']} != 32), 1, null())",
                 nprocs=nprocs,
                 overwrite=overwrite,
                 env=env,
@@ -514,4 +513,4 @@ def prepare_reference_data(mapset: str, basename: str, output_dir: Path, TEMP_NA
         result_dict.update({track: partial_prepare_reference_data_track(track=track, raster_maps=raster_maps)})
     return result_dict
 
-rd = prepare_reference_data_track("Sentinel_1_track_masks", "Sentinel_1", output_dir, None, nprocs=nprocs, temp_name=TEMP_NAME)
+#rd = prepare_reference_data("Sentinel_1_track_masks", "Sentinel_1", output_dir, TEMP_NAME, nprocs=1, env=os.environ.copy())
